@@ -75,3 +75,7 @@ archive.pdf
 ├── vol02/xz.jpg
 └── vol02/xq.jpg
 ```
+
+## License
+
+MIT © Stuart "0xazure" Crust
