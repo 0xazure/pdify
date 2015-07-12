@@ -13,9 +13,13 @@ type OutputPathTest struct {
 
 var outputPathTests = []OutputPathTest{
   {"album", "", "/User/user/images", "/User/user/images/album.pdf"},
+  {"album", "my_album", "/User/user/images", "/User/user/images/my_album.pdf"},
   {"album", "my_album.pdf", "/User/user/images", "/User/user/images/my_album.pdf"},
+  {"/User/user/images/album", "", "/User/user/images", "/User/user/images/album.pdf"},
+  {"/User/user/images/album", "my_album", "/User/user/images", "/User/user/images/my_album.pdf"},
   {"/User/user/images/album", "my_album.pdf", "/User/user/images", "/User/user/images/my_album.pdf"},
   {"/User/user/images/album", "/User/user/documents/my_album.pdf", "/User/user/images", "/User/user/documents/my_album.pdf"},
+  {"/User/user/images/this is an album", "", "/User/user/images", "/User/user/images/this is an album.pdf"},
 }
 
 func TestOutputPath(t *testing.T) {
@@ -25,11 +29,7 @@ func TestOutputPath(t *testing.T) {
     pwd := tt.pwd
     expected := tt.expectedPath
 
-    outputPath, err := OutputPath(input, output, pwd)
-
-    if err != nil {
-      t.Error(err)
-    }
+    outputPath := OutputPath(input, output, pwd)
 
     if outputPath != expected {
       t.Errorf("Expected path %s, got %s\n", expected, outputPath)

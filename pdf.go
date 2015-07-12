@@ -3,6 +3,7 @@ package main
 import (
   "fmt"
   "path/filepath"
+  "strings"
 
   "github.com/jung-kurt/gofpdf"
 )
@@ -15,7 +16,7 @@ func Generate(files []string, output string) error {
   return generate(files, output)
 }
 
-func OutputPath(input string, output string, pwd string) (string, error) {
+func OutputPath(input string, output string, pwd string) string {
   return outputPath(input, output, pwd)
 }
 
@@ -45,16 +46,22 @@ func generate(files []string, output string) error {
   return pdf.OutputFileAndClose(output)
 }
 
-func outputPath(input string, output string, pwd string) (string, error) {
+func outputPath(input string, output string, pwd string) string {
   if output == "" {
-    outputPath := filepath.Join(pwd, input) + ".pdf"
-    return outputPath, nil
-  } else {
-    if filepath.IsAbs(output) {
-      return filepath.Abs(output)
-    } else {
-      outputPath := filepath.Join(pwd, output)
-      return filepath.Abs(outputPath)
-    }
+    output = input
   }
+
+  var opath string
+
+  if filepath.IsAbs(output) {
+    opath = filepath.Clean(output)
+  } else {
+    opath = filepath.Join(pwd, output)
+  }
+
+  if strings.ToLower(filepath.Ext(opath)) != ".pdf" {
+    opath = opath + ".pdf"
+  }
+
+  return opath
 }

@@ -37,9 +37,11 @@ func run() int {
   }
 
   pwd, _ := os.Getwd()
-  outputPath, err := OutputPath(*input, *output, pwd)
-  if err != nil {
-    fmt.Printf("Error: Invalid output %s: %s", *output, err)
+  outputPath := OutputPath(*input, *output, pwd)
+  _, err = os.Stat(outputPath)
+  // Ignore 'no such file or directory' errors
+  if !os.IsNotExist(err) {
+    fmt.Printf("Error: Invalid output %s: %s", outputPath, err)
     return 1
   }
 
