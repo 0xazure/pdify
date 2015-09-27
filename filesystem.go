@@ -12,16 +12,6 @@ var imageExtensions = []string{".png", ".jpg", ".jpeg"}
 var extMap = ExtensionMapBuilder(imageExtensions)
 
 func Analyze(path string) []string {
-	return analyze(path)
-}
-
-func ExtensionMapBuilder(extensions []string) map[string]struct{} {
-	return extensionMapBuilder(extensions)
-}
-
-// Internal
-
-func analyze(path string) []string {
 	var files []string
 
 	walkFn := func(path string, fi os.FileInfo, err error) error {
@@ -38,7 +28,7 @@ func analyze(path string) []string {
 }
 
 // http://stackoverflow.com/questions/10485743/contains-method-for-a-slice
-func extensionMapBuilder(extensions []string) map[string]struct{} {
+func ExtensionMapBuilder(extensions []string) map[string]struct{} {
 	sanitizedExt := sanitizeExtensions(extensions)
 
 	extMap := make(map[string]struct{}, len(sanitizedExt))

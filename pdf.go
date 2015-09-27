@@ -13,16 +13,6 @@ const (
 )
 
 func Generate(files []string, output string) error {
-	return generate(files, output)
-}
-
-func OutputPath(input string, output string, pwd string) string {
-	return outputPath(input, output, pwd)
-}
-
-// Internal
-
-func generate(files []string, output string) error {
 	pdf := gofpdf.NewCustom(&gofpdf.InitType{
 		OrientationStr: "Portrait",
 		UnitStr:        "pt",
@@ -46,7 +36,7 @@ func generate(files []string, output string) error {
 	return pdf.OutputFileAndClose(output)
 }
 
-func outputPath(input string, output string, pwd string) string {
+func OutputPath(input string, output string, pwd string) string {
 	if output == "" {
 		output = input
 	}

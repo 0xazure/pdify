@@ -17,16 +17,6 @@ var (
 )
 
 func Run() int {
-	return run()
-}
-
-func main() {
-	os.Exit(Run())
-}
-
-// Internal
-
-func run() int {
 	kingpin.Version(VERSION)
 	kingpin.Parse()
 
@@ -53,4 +43,8 @@ func run() int {
 	}
 
 	return 0
+}
+
+func main() {
+	os.Exit(Run())
 }
