@@ -2,6 +2,9 @@
 
 > Generate PDF files from a directory of images
 
+[![Build Status](https://travis-ci.org/0xazure/pdify.svg)](https://travis-ci.org/0xazure/pdify)
+[![Coverage Status](https://coveralls.io/repos/0xazure/pdify/badge.svg?branch=master&service=github)](https://coveralls.io/github/0xazure/pdify?branch=master)
+
 ## Install
 
 ```
