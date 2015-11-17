@@ -5,5 +5,11 @@ before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
   - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+  - go get github.com/modocache/gover
 script:
-  - $HOME/gopath/bin/goveralls -service=travis-ci
+  - go test -coverprofile=fs.coverprofile ./fs
+  - go test -coverprofile=generator.coverprofile ./generator
+  - go test -coverprofile=pdf.coverprofile ./pdf
+  - go test -coverprofile=main.coverprofile
+  - $HOME/gopath/bin/gover
+  - $HOME/gopath/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci
