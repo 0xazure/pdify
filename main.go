@@ -12,7 +12,7 @@ import (
 	"github.com/0xazure/pdify/pdf"
 )
 
-const VERSION = "0.1.1"
+const VERSION = "0.2.0"
 
 var (
 	input  = kingpin.Arg("input", "Source folder.").Required().String()
