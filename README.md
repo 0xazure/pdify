@@ -2,13 +2,13 @@
 
 > Generate PDF files from a directory of images
 
-[![Build Status](https://travis-ci.org/0xazure/pdify.svg)](https://travis-ci.org/0xazure/pdify)
-[![Coverage Status](https://coveralls.io/repos/0xazure/pdify/badge.svg?branch=master&service=github)](https://coveralls.io/github/0xazure/pdify?branch=master)
+[![Build Status](https://travis-ci.org/0xazure/go-pdify.svg)](https://travis-ci.org/0xazure/go-pdify)
+[![Coverage Status](https://coveralls.io/repos/0xazure/go-pdify/badge.svg?branch=master&service=github)](https://coveralls.io/github/0xazure/go-pdify?branch=master)
 
 ## Install
 
 ```
-$ go get github.com/0xazure/pdify
+$ go get github.com/0xazure/go-pdify
 ```
 
 ## Usage
