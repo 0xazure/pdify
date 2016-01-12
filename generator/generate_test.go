@@ -32,6 +32,15 @@ func (w *TestWalker) Walk(path string, validExts []string) ([]string, error) {
 	return w.WalkFunc(path, validExts)
 }
 
+func TestGenerator_New(t *testing.T) {
+	pwd, _ := os.Getwd()
+	g := New()
+
+	if g.Pwd != pwd {
+		t.Errorf("Expected pwd %s, got %s", pwd, g.Pwd)
+	}
+}
+
 func TestGenerator_Generate(t *testing.T) {
 	p := &TestPdf{}
 

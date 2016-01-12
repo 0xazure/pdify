@@ -5,11 +5,8 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/jung-kurt/gofpdf"
 
-	. "github.com/0xazure/pdify/fs"
-	. "github.com/0xazure/pdify/generator"
-	"github.com/0xazure/pdify/pdf"
+	"github.com/0xazure/pdify/generator"
 )
 
 const VERSION = "0.2.0"
@@ -23,19 +20,7 @@ func main() {
 	kingpin.Version(VERSION)
 	kingpin.Parse()
 
-	p := gofpdf.NewCustom(&gofpdf.InitType{
-		OrientationStr: "Portrait",
-		UnitStr:        "pt",
-	})
-
-	w := new(Walker)
-
-	pwd, pwdErr := os.Getwd()
-	if pwdErr != nil {
-		panic(pwdErr)
-	}
-
-	g := Generator{Pwd: pwd, Pdf: pdf.New(p), Walker: w}
+	g := generator.New()
 	err := g.Generate(*input, *output)
 
 	if err.ExitCode != 0 {

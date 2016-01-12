@@ -1,8 +1,14 @@
 package generator
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jung-kurt/gofpdf"
+
+	"github.com/0xazure/pdify/fs"
+	"github.com/0xazure/pdify/pdf"
 )
 
 type Generator struct {
@@ -15,6 +21,20 @@ type Generator struct {
 	}
 	Walker interface {
 		Walk(string, []string) ([]string, error)
+	}
+}
+
+func New() *Generator {
+	pwd, _ := os.Getwd()
+	gofpdf := gofpdf.NewCustom(&gofpdf.InitType{
+		OrientationStr: "Portrait",
+		UnitStr:        "pt",
+	})
+
+	return &Generator{
+		Pwd:    pwd,
+		Pdf:    pdf.New(gofpdf),
+		Walker: new(fs.Walker),
 	}
 }
 
