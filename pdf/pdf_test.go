@@ -38,8 +38,8 @@ func (p *TestPdf) Error() error {
 	return p.ErrorFunc()
 }
 
-func (p *TestPdf) Image(name string, x, y, w, h float64, flow bool, format string, link int, linkUrl string) {
-	p.ImageFunc(name, x, y, w, h, flow, format, link, linkUrl)
+func (p *TestPdf) Image(name string, x, y, w, h float64, flow bool, format string, link int, linkURL string) {
+	p.ImageFunc(name, x, y, w, h, flow, format, link, linkURL)
 }
 
 func (p *TestPdf) OutputFileAndClose(path string) error {
@@ -73,7 +73,7 @@ func TestPdf_Write(t *testing.T) {
 
 	p := New(d)
 
-	var expectedErr error = nil
+	var expectedErr error
 	actualErr := p.Write("testdata")
 	if expectedErr != actualErr {
 		t.Errorf("Expected error %v, got %v", expectedErr, actualErr)

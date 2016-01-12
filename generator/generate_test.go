@@ -40,22 +40,22 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	var imageCount int
-	addImageFunc_NoErr := func(p string) error {
-		imageCount += 1
+	addImageFuncNoErr := func(p string) error {
+		imageCount++
 		return nil
 	}
 
-	addImageFunc_Err := func(p string) error {
+	addImageFuncErr := func(p string) error {
 		return errors.New("Unable to add image")
 	}
 
 	var dest string
-	writeFunc_NoErr := func(d string) error {
+	writeFuncNoErr := func(d string) error {
 		dest = d
 		return nil
 	}
 
-	writeFunc_Err := func(d string) error {
+	writeFuncErr := func(d string) error {
 		return errors.New("Unable to write file")
 	}
 
@@ -78,8 +78,8 @@ func TestGenerator_Generate(t *testing.T) {
 
 	generator := Generator{Pwd: pwd, Pdf: p, Walker: w}
 
-	p.AddImageFunc = addImageFunc_NoErr
-	p.WriteFunc = writeFunc_NoErr
+	p.AddImageFunc = addImageFuncNoErr
+	p.WriteFunc = writeFuncNoErr
 	err := generator.Generate("src", "dest")
 
 	if imageCount != len(files) {
@@ -90,16 +90,16 @@ func TestGenerator_Generate(t *testing.T) {
 		t.Errorf("Expected no error, got %v", err.Err)
 	}
 
-	p.AddImageFunc = addImageFunc_Err
-	p.WriteFunc = writeFunc_NoErr
+	p.AddImageFunc = addImageFuncErr
+	p.WriteFunc = writeFuncNoErr
 	err = generator.Generate("src", "dest")
 
 	if err.Err == nil {
 		t.Error("Expected error return from Generate, error adding image")
 	}
 
-	p.AddImageFunc = addImageFunc_NoErr
-	p.WriteFunc = writeFunc_Err
+	p.AddImageFunc = addImageFuncNoErr
+	p.WriteFunc = writeFuncErr
 	err = generator.Generate("src", "dest")
 
 	if err.Err == nil {
