@@ -16,7 +16,7 @@ func NewExtensionList(exts []string) ExtensionList {
 }
 
 func (l *ExtensionList) Exts() (exts []string) {
-	for k, _ := range l.m {
+	for k := range l.m {
 		exts = append(exts, k)
 	}
 	return

@@ -1,7 +1,5 @@
 package generator
 
-import ()
-
 type ProcessError struct {
 	Err      error
 	ExitCode int
