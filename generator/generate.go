@@ -24,7 +24,8 @@ type Generator struct {
 	}
 }
 
-func New() *Generator {
+func New(src string) *Generator {
+	src, _ = filepath.Abs(src)
 	pwd, _ := os.Getwd()
 	gofpdf := gofpdf.NewCustom(&gofpdf.InitType{
 		OrientationStr: "Portrait",
@@ -32,22 +33,25 @@ func New() *Generator {
 	})
 
 	return &Generator{
+		src:    src,
 		Pwd:    pwd,
 		Pdf:    pdf.New(gofpdf),
 		Walker: new(fs.Walker),
 	}
 }
 
-func (g *Generator) Generate(src string, dest string) ProcessError {
-	g.src, _ = filepath.Abs(src)
-	g.dest = destPath(g.src, dest, g.Pwd)
-
+func (g *Generator) Generate() ProcessError {
 	files, _ := g.walk(g.src, g.validExtensions())
 	for _, file := range files {
 		if err := g.addImage(file); err != nil {
 			return newProcessError(err)
 		}
 	}
+	return newProcessError(nil)
+}
+
+func (g *Generator) Write(dest string) ProcessError {
+	g.dest = destPath(g.src, dest, g.Pwd)
 
 	if err := g.write(); err != nil {
 		return newProcessError(err)

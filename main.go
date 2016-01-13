@@ -20,11 +20,19 @@ func main() {
 	kingpin.Version(VERSION)
 	kingpin.Parse()
 
-	g := generator.New()
-	err := g.Generate(*input, *output)
+	g := generator.New(*input)
 
+	err := g.Generate()
 	if err.ExitCode != 0 {
 		fmt.Println(err.Err)
+		os.Exit(err.ExitCode)
 	}
-	os.Exit(err.ExitCode)
+
+	err = g.Write(*output)
+	if err.ExitCode != 0 {
+		fmt.Println(err.Err)
+		os.Exit(err.ExitCode)
+	}
+
+	os.Exit(0)
 }

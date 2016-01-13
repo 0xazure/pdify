@@ -6,6 +6,12 @@ import (
 	"testing"
 )
 
+func ValidExtensions() func() []string {
+	return func() []string {
+		return []string{".png", ".jpg", ".jpeg"}
+	}
+}
+
 type TestPdf struct {
 	AddImageFunc        func(string) error
 	ValidExtensionsFunc func() []string
@@ -34,7 +40,7 @@ func (w *TestWalker) Walk(path string, validExts []string) ([]string, error) {
 
 func TestGenerator_New(t *testing.T) {
 	pwd, _ := os.Getwd()
-	g := New()
+	g := New("src")
 
 	if g.Pwd != pwd {
 		t.Errorf("Expected pwd %s, got %s", pwd, g.Pwd)
@@ -44,9 +50,7 @@ func TestGenerator_New(t *testing.T) {
 func TestGenerator_Generate(t *testing.T) {
 	p := &TestPdf{}
 
-	p.ValidExtensionsFunc = func() []string {
-		return []string{".png", ".jpg", ".jpeg"}
-	}
+	p.ValidExtensionsFunc = ValidExtensions()
 
 	var imageCount int
 	addImageFuncNoErr := func(p string) error {
@@ -56,16 +60,6 @@ func TestGenerator_Generate(t *testing.T) {
 
 	addImageFuncErr := func(p string) error {
 		return errors.New("Unable to add image")
-	}
-
-	var dest string
-	writeFuncNoErr := func(d string) error {
-		dest = d
-		return nil
-	}
-
-	writeFuncErr := func(d string) error {
-		return errors.New("Unable to write file")
 	}
 
 	files := []string{
@@ -80,16 +74,10 @@ func TestGenerator_Generate(t *testing.T) {
 		return files, nil
 	}
 
-	pwd, pwdErr := os.Getwd()
-	if pwdErr != nil {
-		panic(pwdErr)
-	}
-
-	generator := Generator{Pwd: pwd, Pdf: p, Walker: w}
+	generator := Generator{Pdf: p, Walker: w}
 
 	p.AddImageFunc = addImageFuncNoErr
-	p.WriteFunc = writeFuncNoErr
-	err := generator.Generate("src", "dest")
+	err := generator.Generate()
 
 	if imageCount != len(files) {
 		t.Errorf("Expected %d images, got %d", len(files), imageCount)
@@ -100,16 +88,44 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	p.AddImageFunc = addImageFuncErr
-	p.WriteFunc = writeFuncNoErr
-	err = generator.Generate("src", "dest")
+	err = generator.Generate()
 
 	if err.Err == nil {
 		t.Error("Expected error return from Generate, error adding image")
 	}
+}
 
-	p.AddImageFunc = addImageFuncNoErr
+func TestGenerator_Write(t *testing.T) {
+	p := &TestPdf{}
+
+	p.ValidExtensionsFunc = ValidExtensions()
+
+	var dest string
+	writeFuncNoErr := func(d string) error {
+		dest = d
+		return nil
+	}
+
+	writeFuncErr := func(d string) error {
+		return errors.New("Unable to write file")
+	}
+
+	pwd, pwdErr := os.Getwd()
+	if pwdErr != nil {
+		panic(pwdErr)
+	}
+
+	generator := Generator{Pwd: pwd, Pdf: p}
+
+	p.WriteFunc = writeFuncNoErr
+	err := generator.Write("dest")
+
+	if err.Err != nil {
+		t.Errorf("Expected no error, got %v", err.Err)
+	}
+
 	p.WriteFunc = writeFuncErr
-	err = generator.Generate("src", "dest")
+	err = generator.Write("dest")
 
 	if err.Err == nil {
 		t.Error("Expected error return from Generate, error writing file")
