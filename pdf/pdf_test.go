@@ -62,6 +62,38 @@ func TestPdf_New(t *testing.T) {
 	}
 }
 
+type SupportedExtensionTest struct {
+	extension string
+	supported bool
+}
+
+// github.com/jung-kurt/gofpdf only supports .png, .jpg, .jpeg images
+// See docs at https://godoc.org/github.com/jung-kurt/gofpdf
+var supportedExtensionTests = []SupportedExtensionTest{
+	{"png", true},
+	{".png", true},
+	{".jpg", true},
+	{"jpeg", true},
+	{".jpg.tar", false},
+	{"", false},
+	{"bpm", false},
+	{".exe", false},
+}
+
+func TestPdf_SupportsExtension(t *testing.T) {
+	p := New(testPdfDoc)
+
+	for _, tt := range supportedExtensionTests {
+		extension := tt.extension
+		expectedSupport := tt.supported
+
+		support := p.SupportsExtension(extension)
+		if support != expectedSupport {
+			t.Errorf("Expected support for %s to be %t, got %t", extension, expectedSupport, support)
+		}
+	}
+}
+
 func TestPdf_Write(t *testing.T) {
 	d := &TestPdf{}
 

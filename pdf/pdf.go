@@ -2,6 +2,7 @@ package pdf
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jung-kurt/gofpdf"
 )
@@ -11,7 +12,8 @@ const (
 )
 
 type Pdf struct {
-	doc pdfDoc
+	doc                 pdfDoc
+	supportedExtensions map[string]struct{}
 }
 
 type pdfDoc interface {
@@ -29,6 +31,12 @@ func New(d pdfDoc) (p *Pdf) {
 	p = new(Pdf)
 	p.doc = d
 	p.doc.SetMargins(margin, margin, margin)
+	// http://stackoverflow.com/questions/10485743/contains-method-for-a-slice
+	p.supportedExtensions = map[string]struct{}{
+		".png":  {},
+		".jpg":  {},
+		".jpeg": {},
+	}
 	return
 }
 
@@ -47,7 +55,25 @@ func (p *Pdf) AddImage(file string) error {
 	return nil
 }
 
+func (p *Pdf) SupportsExtension(extension string) (contains bool) {
+	ext := formatExtension(extension)
+	_, contains = p.supportedExtensions[ext]
+	return
+}
+
 func (p *Pdf) Write(dest string) error {
 	fmt.Printf("Writing PDF to %s\n", dest)
 	return p.doc.OutputFileAndClose(dest)
+}
+
+func formatExtension(extension string) string {
+	ext := strings.ToLower(extension)
+	pos := strings.Index(ext, ".")
+
+	if pos != 0 {
+		if len(strings.TrimSpace(ext)) > 0 {
+			return "." + ext
+		}
+	}
+	return ext
 }

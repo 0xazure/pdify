@@ -17,6 +17,7 @@ type Generator struct {
 	Pwd  string
 	Pdf  interface {
 		AddImage(string) error
+		SupportsExtension(string) bool
 		Write(string) error
 	}
 	Walker interface {
@@ -65,21 +66,13 @@ func (g *Generator) addImage(path string) error {
 }
 
 func (g *Generator) extFilterFunc() func(fs.FileInfo) bool {
-	validExtensionList := fs.NewExtensionList(g.validExtensions())
-
 	return func(fi fs.FileInfo) bool {
 		ext := filepath.Ext(fi.Name())
-		if !fi.IsDir() && validExtensionList.Contains(ext) {
+		if !fi.IsDir() && g.Pdf.SupportsExtension(ext) {
 			return true
 		}
 		return false
 	}
-}
-
-func (g *Generator) validExtensions() []string {
-	// github.com/jung-kurt/gofpdf only supports .png, .jpg, .jpeg images
-	// See docs at https://godoc.org/github.com/jung-kurt/gofpdf
-	return []string{".png", ".jpg", ".jpeg"}
 }
 
 func (g *Generator) write() error {

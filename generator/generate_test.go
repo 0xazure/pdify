@@ -8,26 +8,19 @@ import (
 	"github.com/0xazure/pdify/fs"
 )
 
-func ValidExtensions() func() []string {
-	return func() []string {
-		return []string{".png", ".jpg", ".jpeg"}
-	}
-}
-
 type TestPdf struct {
-	AddImageFunc        func(string) error
-	ValidExtensionsFunc func() []string
-	WriteFunc           func(string) error
+	AddImageFunc          func(string) error
+	SupportsExtensionFunc func(string) bool
+	WriteFunc             func(string) error
 }
 
 func (p *TestPdf) AddImage(path string) error {
 	return p.AddImageFunc(path)
 }
 
-func (p *TestPdf) ValidExtensions() []string {
-	return p.ValidExtensionsFunc()
+func (p *TestPdf) SupportsExtension(extension string) bool {
+	return p.SupportsExtensionFunc(extension)
 }
-
 func (p *TestPdf) Write(dest string) error {
 	return p.WriteFunc(dest)
 }
@@ -51,8 +44,6 @@ func TestGenerator_New(t *testing.T) {
 
 func TestGenerator_Generate(t *testing.T) {
 	p := &TestPdf{}
-
-	p.ValidExtensionsFunc = ValidExtensions()
 
 	var imageCount int
 	addImageFuncNoErr := func(p string) error {
@@ -99,8 +90,6 @@ func TestGenerator_Generate(t *testing.T) {
 
 func TestGenerator_Write(t *testing.T) {
 	p := &TestPdf{}
-
-	p.ValidExtensionsFunc = ValidExtensions()
 
 	var dest string
 	writeFuncNoErr := func(d string) error {
@@ -287,33 +276,6 @@ func TestGenerator_extFilterFunc(t *testing.T) {
 
 		if added != expected {
 			t.Errorf("Expected %s (IsDir: %t) to be added: %t", fi.Name(), fi.IsDir(), expected)
-		}
-	}
-}
-
-func TestGenerator_validExtensions(t *testing.T) {
-	// github.com/jung-kurt/gofpdf only supports .png, .jpg, .jpeg images
-	// See docs at https://godoc.org/github.com/jung-kurt/gofpdf
-	supportedExts := []string{".png", ".jpg", ".jpeg"}
-
-	g := Generator{}
-	exts := g.validExtensions()
-
-	// Check that the map has the same number of elements as is expected
-	if len(supportedExts) != len(exts) {
-		t.Errorf("Expected array length of %d, got %d", len(supportedExts), len(exts))
-	}
-
-	// Check that all expected values are contained in the array
-	for _, supported := range supportedExts {
-		found := false
-		for _, ext := range exts {
-			if supported == ext {
-				found = true
-			}
-		}
-		if !found {
-			t.Errorf("'%s' should be a valid extension", supported)
 		}
 	}
 }
