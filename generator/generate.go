@@ -20,7 +20,7 @@ type Generator struct {
 		Write(string) error
 	}
 	Walker interface {
-		Walk(string, []string) ([]string, error)
+		Walk(string, func(fs.FileInfo) bool) ([]string, error)
 	}
 }
 
@@ -41,7 +41,7 @@ func New(src string) *Generator {
 }
 
 func (g *Generator) Generate() ProcessError {
-	files, _ := g.walk(g.src, g.validExtensions())
+	files, _ := g.walk(g.src, g.extFilterFunc())
 	for _, file := range files {
 		if err := g.addImage(file); err != nil {
 			return newProcessError(err)
@@ -64,6 +64,18 @@ func (g *Generator) addImage(path string) error {
 	return g.Pdf.AddImage(path)
 }
 
+func (g *Generator) extFilterFunc() func(fs.FileInfo) bool {
+	validExtensionList := fs.NewExtensionList(g.validExtensions())
+
+	return func(fi fs.FileInfo) bool {
+		ext := filepath.Ext(fi.Name())
+		if !fi.IsDir() && validExtensionList.Contains(ext) {
+			return true
+		}
+		return false
+	}
+}
+
 func (g *Generator) validExtensions() []string {
 	// github.com/jung-kurt/gofpdf only supports .png, .jpg, .jpeg images
 	// See docs at https://godoc.org/github.com/jung-kurt/gofpdf
@@ -74,8 +86,8 @@ func (g *Generator) write() error {
 	return g.Pdf.Write(g.dest)
 }
 
-func (g *Generator) walk(path string, validExts []string) ([]string, error) {
-	return g.Walker.Walk(path, validExts)
+func (g *Generator) walk(path string, filter func(fs.FileInfo) bool) ([]string, error) {
+	return g.Walker.Walk(path, filter)
 }
 
 func destPath(src string, dest string, pwd string) (p string) {

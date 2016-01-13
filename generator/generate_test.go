@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"testing"
+
+	"github.com/0xazure/pdify/fs"
 )
 
 func ValidExtensions() func() []string {
@@ -31,11 +33,11 @@ func (p *TestPdf) Write(dest string) error {
 }
 
 type TestWalker struct {
-	WalkFunc func(string, []string) ([]string, error)
+	WalkFunc func(string, func(fs.FileInfo) bool) ([]string, error)
 }
 
-func (w *TestWalker) Walk(path string, validExts []string) ([]string, error) {
-	return w.WalkFunc(path, validExts)
+func (w *TestWalker) Walk(path string, filter func(fs.FileInfo) bool) ([]string, error) {
+	return w.WalkFunc(path, filter)
 }
 
 func TestGenerator_New(t *testing.T) {
@@ -70,7 +72,7 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	w := &TestWalker{}
-	w.WalkFunc = func(p string, e []string) ([]string, error) {
+	w.WalkFunc = func(p string, f func(fs.FileInfo) bool) ([]string, error) {
 		return files, nil
 	}
 
@@ -207,6 +209,84 @@ func TestGenerator_destPath(t *testing.T) {
 
 		if destPath != expected {
 			t.Errorf("Expected path '%s', got '%s'", expected, destPath)
+		}
+	}
+}
+
+type TestFileInfo struct {
+	NameFunc  func() string
+	IsDirFunc func() bool
+}
+
+func (i *TestFileInfo) Name() string {
+	return i.NameFunc()
+}
+
+func (i *TestFileInfo) IsDir() bool {
+	return i.IsDirFunc()
+}
+
+type ExtFilterFuncTest struct {
+	nameFunc  func() string
+	isDirFunc func() bool
+	expected  bool
+}
+
+func TestGenerator_extFilterFunc(t *testing.T) {
+	validFileExt := "image.jpg"
+	nameFuncValidExt := func() string {
+		return validFileExt
+	}
+
+	invalidFileExt := "image.xyz"
+	nameFuncInvalidExt := func() string {
+		return invalidFileExt
+	}
+
+	isDirFuncIsDir := func() bool {
+		return true
+	}
+
+	isDirFuncIsNotDir := func() bool {
+		return false
+	}
+
+	extFilterFuncTests := []ExtFilterFuncTest{
+		{
+			nameFunc:  nameFuncValidExt,
+			isDirFunc: isDirFuncIsNotDir,
+			expected:  true,
+		},
+		{
+			nameFunc:  nameFuncValidExt,
+			isDirFunc: isDirFuncIsDir,
+			expected:  false,
+		},
+		{
+			nameFunc:  nameFuncInvalidExt,
+			isDirFunc: isDirFuncIsNotDir,
+			expected:  false,
+		},
+		{
+			nameFunc:  nameFuncInvalidExt,
+			isDirFunc: isDirFuncIsDir,
+			expected:  false,
+		},
+	}
+
+	g := New("src")
+	extFilterFunc := g.extFilterFunc()
+	fi := &TestFileInfo{}
+
+	for _, tt := range extFilterFuncTests {
+		fi.NameFunc = tt.nameFunc
+		fi.IsDirFunc = tt.isDirFunc
+		expected := tt.expected
+
+		added := extFilterFunc(fi)
+
+		if added != expected {
+			t.Errorf("Expected %s (IsDir: %t) to be added: %t", fi.Name(), fi.IsDir(), expected)
 		}
 	}
 }

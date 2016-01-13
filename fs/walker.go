@@ -5,14 +5,16 @@ import (
 	"path/filepath"
 )
 
+type FileInfo interface {
+	Name() string
+	IsDir() bool
+}
+
 type Walker struct{}
 
-func (w *Walker) Walk(path string, validExts []string) (files []string, err error) {
-	validExtensionList := NewExtensionList(validExts)
-
+func (w *Walker) Walk(path string, filter func(FileInfo) bool) (files []string, err error) {
 	walkFn := func(path string, fi os.FileInfo, err error) error {
-		ext := filepath.Ext(fi.Name())
-		if !fi.IsDir() && validExtensionList.Contains(ext) {
+		if filter(fi) {
 			files = append(files, path)
 		}
 		return nil
