@@ -42,7 +42,10 @@ func New(src string) *Generator {
 }
 
 func (g *Generator) Generate() ProcessError {
-	files, _ := g.walk(g.src, g.extFilterFunc())
+	files, walkErr := g.walk(g.src, g.extFilterFunc())
+	if walkErr != nil {
+		return newProcessError(walkErr)
+	}
 	for _, file := range files {
 		if err := g.addImage(file); err != nil {
 			return newProcessError(err)
