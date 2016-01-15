@@ -4,6 +4,7 @@
 
 [![Build Status](https://travis-ci.org/0xazure/go-pdify.svg)](https://travis-ci.org/0xazure/go-pdify)
 [![Coverage Status](https://coveralls.io/repos/0xazure/go-pdify/badge.svg?branch=master&service=github)](https://coveralls.io/github/0xazure/go-pdify?branch=master)
+[![Go Report Card](http://goreportcard.com/badge/0xazure/go-pdify)](http://goreportcard.com/report/0xazure/go-pdify)
 
 ## Install
 
