@@ -63,13 +63,19 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	w := &TestWalker{}
-	w.WalkFunc = func(p string, f func(fs.FileInfo) bool) ([]string, error) {
+
+	walkFuncNoErr := func(p string, f func(fs.FileInfo) bool) ([]string, error) {
 		return files, nil
+	}
+
+	walkFuncErr := func(p string, f func(fs.FileInfo) bool) ([]string, error) {
+		return nil, errors.New("Problem walking path")
 	}
 
 	generator := Generator{Pdf: p, Walker: w}
 
 	p.AddImageFunc = addImageFuncNoErr
+	w.WalkFunc = walkFuncNoErr
 	err := generator.Generate()
 
 	if imageCount != len(files) {
@@ -81,10 +87,19 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	p.AddImageFunc = addImageFuncErr
+	w.WalkFunc = walkFuncNoErr
 	err = generator.Generate()
 
 	if err.Err == nil {
 		t.Error("Expected error return from Generate, error adding image")
+	}
+
+	p.AddImageFunc = addImageFuncNoErr
+	w.WalkFunc = walkFuncErr
+	err = generator.Generate()
+
+	if err.Err == nil {
+		t.Error("Expected error return from Generate, error walking path")
 	}
 }
 
