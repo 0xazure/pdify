@@ -5,9 +5,32 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/0xazure/pdify/fs"
 	"github.com/0xazure/pdify/pdf"
 )
+
+type FileInfo interface {
+	Name() string
+	IsDir() bool
+}
+
+type Walker struct{}
+
+func (w *Walker) Walk(path string, filter func(FileInfo) bool) (files []string, err error) {
+	walkFn := func(path string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if filter(fi) {
+			files = append(files, path)
+		}
+		return nil
+	}
+
+	err = filepath.Walk(path, walkFn)
+
+	return
+}
 
 type Generator struct {
 	src  string
@@ -19,7 +42,7 @@ type Generator struct {
 		Write(string) error
 	}
 	Walker interface {
-		Walk(string, func(fs.FileInfo) bool) ([]string, error)
+		Walk(string, func(FileInfo) bool) ([]string, error)
 	}
 }
 
@@ -31,7 +54,7 @@ func New(src string) *Generator {
 		src:    src,
 		Pwd:    pwd,
 		Pdf:    pdf.New(),
-		Walker: new(fs.Walker),
+		Walker: new(Walker),
 	}
 }
 
@@ -62,8 +85,8 @@ func (g *Generator) addImage(path string) error {
 	return g.Pdf.AddImage(path)
 }
 
-func (g *Generator) extFilterFunc() func(fs.FileInfo) bool {
-	return func(fi fs.FileInfo) bool {
+func (g *Generator) extFilterFunc() func(FileInfo) bool {
+	return func(fi FileInfo) bool {
 		ext := filepath.Ext(fi.Name())
 		if !fi.IsDir() && g.Pdf.SupportsExtension(ext) {
 			return true
@@ -76,7 +99,7 @@ func (g *Generator) write() error {
 	return g.Pdf.Write(g.dest)
 }
 
-func (g *Generator) walk(path string, filter func(fs.FileInfo) bool) ([]string, error) {
+func (g *Generator) walk(path string, filter func(FileInfo) bool) ([]string, error) {
 	return g.Walker.Walk(path, filter)
 }
 
