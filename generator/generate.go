@@ -15,7 +15,7 @@ type Generator struct {
 	Pwd  string
 	Pdf  interface {
 		AddImage(string) error
-		SupportsExtension(string) bool
+		Supports(string) bool
 		Write(string) error
 	}
 	Walker interface {
@@ -64,8 +64,7 @@ func (g *Generator) addImage(path string) error {
 
 func (g *Generator) extFilterFunc() func(fs.FileInfo) bool {
 	return func(fi fs.FileInfo) bool {
-		ext := filepath.Ext(fi.Name())
-		if !fi.IsDir() && g.Pdf.SupportsExtension(ext) {
+		if !fi.IsDir() && g.Pdf.Supports(fi.Name()) {
 			return true
 		}
 		return false

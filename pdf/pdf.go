@@ -2,7 +2,7 @@ package pdf
 
 import (
 	"fmt"
-	"strings"
+	"path/filepath"
 
 	"github.com/jung-kurt/gofpdf"
 )
@@ -59,25 +59,12 @@ func (p *Pdf) AddImage(file string) error {
 	return nil
 }
 
-func (p *Pdf) SupportsExtension(extension string) (contains bool) {
-	ext := formatExtension(extension)
-	_, contains = p.supportedExtensions[ext]
-	return
+func (p *Pdf) Supports(path string) bool {
+	_, contains := p.supportedExtensions[filepath.Ext(path)]
+	return contains
 }
 
 func (p *Pdf) Write(dest string) error {
 	fmt.Printf("Writing PDF to %s\n", dest)
 	return p.doc.OutputFileAndClose(dest)
-}
-
-func formatExtension(extension string) string {
-	ext := strings.ToLower(extension)
-	pos := strings.Index(ext, ".")
-
-	if pos != 0 {
-		if len(strings.TrimSpace(ext)) > 0 {
-			return "." + ext
-		}
-	}
-	return ext
 }

@@ -9,17 +9,17 @@ import (
 )
 
 type TestPdf struct {
-	AddImageFunc          func(string) error
-	SupportsExtensionFunc func(string) bool
-	WriteFunc             func(string) error
+	AddImageFunc func(string) error
+	SupportsFunc func(string) bool
+	WriteFunc    func(string) error
 }
 
 func (p *TestPdf) AddImage(path string) error {
 	return p.AddImageFunc(path)
 }
 
-func (p *TestPdf) SupportsExtension(extension string) bool {
-	return p.SupportsExtensionFunc(extension)
+func (p *TestPdf) Supports(name string) bool {
+	return p.SupportsFunc(name)
 }
 func (p *TestPdf) Write(dest string) error {
 	return p.WriteFunc(dest)
