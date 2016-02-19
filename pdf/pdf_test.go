@@ -6,11 +6,6 @@ import (
 	"github.com/jung-kurt/gofpdf"
 )
 
-var testPdfDoc = gofpdf.NewCustom(&gofpdf.InitType{
-	OrientationStr: "Portrait",
-	UnitStr:        "pt",
-})
-
 type TestPdf struct {
 	AddPageFormatFunc      func(string, gofpdf.SizeType)
 	CloseFunc              func()
@@ -55,7 +50,7 @@ func (p *TestPdf) SetMargins(left, top, right float64) {
 }
 
 func TestPdf_New(t *testing.T) {
-	p := New(testPdfDoc)
+	p := New()
 
 	if p.doc == nil {
 		t.Errorf("Expected PDF to have an internal representation, got %v", p.doc)
@@ -81,7 +76,7 @@ var supportedExtensionTests = []SupportedExtensionTest{
 }
 
 func TestPdf_SupportsExtension(t *testing.T) {
-	p := New(testPdfDoc)
+	p := New()
 
 	for _, tt := range supportedExtensionTests {
 		extension := tt.extension
@@ -103,7 +98,9 @@ func TestPdf_Write(t *testing.T) {
 
 	d.SetMarginsFunc = func(l, t, r float64) {}
 
-	p := New(d)
+	p := &Pdf{
+		doc: d,
+	}
 
 	var expectedErr error
 	actualErr := p.Write("testdata")

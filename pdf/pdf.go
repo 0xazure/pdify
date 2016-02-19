@@ -27,16 +27,20 @@ type pdfDoc interface {
 	SetMargins(float64, float64, float64)
 }
 
-func New(d pdfDoc) (p *Pdf) {
-	p = new(Pdf)
-	p.doc = d
-	p.doc.SetMargins(margin, margin, margin)
-	// http://stackoverflow.com/questions/10485743/contains-method-for-a-slice
-	p.supportedExtensions = map[string]struct{}{
-		".png":  {},
-		".jpg":  {},
-		".jpeg": {},
+func New() (p *Pdf) {
+	p = &Pdf{
+		doc: gofpdf.NewCustom(&gofpdf.InitType{
+			OrientationStr: "Portrait",
+			UnitStr:        "pt",
+		}),
+		// http://stackoverflow.com/questions/10485743/contains-method-for-a-slice
+		supportedExtensions: map[string]struct{}{
+			".png":  {},
+			".jpg":  {},
+			".jpeg": {},
+		},
 	}
+	p.doc.SetMargins(margin, margin, margin)
 	return
 }
 

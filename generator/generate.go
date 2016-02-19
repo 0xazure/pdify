@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jung-kurt/gofpdf"
-
 	"github.com/0xazure/pdify/fs"
 	"github.com/0xazure/pdify/pdf"
 )
@@ -28,15 +26,11 @@ type Generator struct {
 func New(src string) *Generator {
 	src, _ = filepath.Abs(src)
 	pwd, _ := os.Getwd()
-	gofpdf := gofpdf.NewCustom(&gofpdf.InitType{
-		OrientationStr: "Portrait",
-		UnitStr:        "pt",
-	})
 
 	return &Generator{
 		src:    src,
 		Pwd:    pwd,
-		Pdf:    pdf.New(gofpdf),
+		Pdf:    pdf.New(),
 		Walker: new(fs.Walker),
 	}
 }
