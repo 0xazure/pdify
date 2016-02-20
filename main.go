@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/alecthomas/kingpin"
@@ -17,21 +17,21 @@ var (
 )
 
 func main() {
+	logger := log.New(os.Stderr, "pdify: ", 0)
+
 	kingpin.Version(VERSION)
 	kingpin.Parse()
 
 	g := generator.New(*input)
 
 	err := g.Generate()
-	if err.ExitCode != 0 {
-		fmt.Println(err.Err)
-		os.Exit(err.ExitCode)
+	if err != nil {
+		logger.Fatal(err)
 	}
 
 	err = g.Write(*output)
-	if err.ExitCode != 0 {
-		fmt.Println(err.Err)
-		os.Exit(err.ExitCode)
+	if err != nil {
+		logger.Fatal(err)
 	}
 
 	os.Exit(0)

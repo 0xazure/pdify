@@ -82,15 +82,15 @@ func TestGenerator_Generate(t *testing.T) {
 		t.Errorf("Expected %d images, got %d", len(files), imageCount)
 	}
 
-	if err.Err != nil {
-		t.Errorf("Expected no error, got %v", err.Err)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
 	}
 
 	p.AddImageFunc = addImageFuncErr
 	w.WalkFunc = walkFuncNoErr
 	err = generator.Generate()
 
-	if err.Err == nil {
+	if err == nil {
 		t.Error("Expected error return from Generate, error adding image")
 	}
 
@@ -98,7 +98,7 @@ func TestGenerator_Generate(t *testing.T) {
 	w.WalkFunc = walkFuncErr
 	err = generator.Generate()
 
-	if err.Err == nil {
+	if err == nil {
 		t.Error("Expected error return from Generate, error walking path")
 	}
 }
@@ -126,14 +126,14 @@ func TestGenerator_Write(t *testing.T) {
 	p.WriteFunc = writeFuncNoErr
 	err := generator.Write("dest")
 
-	if err.Err != nil {
-		t.Errorf("Expected no error, got %v", err.Err)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
 	}
 
 	p.WriteFunc = writeFuncErr
 	err = generator.Write("dest")
 
-	if err.Err == nil {
+	if err == nil {
 		t.Error("Expected error return from Generate, error writing file")
 	}
 }

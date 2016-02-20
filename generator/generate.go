@@ -35,27 +35,27 @@ func New(src string) *Generator {
 	}
 }
 
-func (g *Generator) Generate() ProcessError {
+func (g *Generator) Generate() error {
 	files, walkErr := g.walk(g.src, g.extFilterFunc())
 	if walkErr != nil {
-		return newProcessError(walkErr)
+		return walkErr
 	}
 	for _, file := range files {
 		if err := g.addImage(file); err != nil {
-			return newProcessError(err)
+			return err
 		}
 	}
-	return newProcessError(nil)
+	return nil
 }
 
-func (g *Generator) Write(dest string) ProcessError {
+func (g *Generator) Write(dest string) error {
 	g.dest = destPath(g.src, dest, g.Pwd)
 
 	if err := g.write(); err != nil {
-		return newProcessError(err)
+		return err
 	}
 
-	return newProcessError(nil)
+	return nil
 }
 
 func (g *Generator) addImage(path string) error {
