@@ -12,6 +12,7 @@ import (
 type TestPdf struct {
 	AddImageFunc func(string) error
 	SupportsFunc func(string) bool
+	WriteFunc    func(pdf.File) error
 }
 
 func (p *TestPdf) AddImage(path string) error {
@@ -22,7 +23,7 @@ func (p *TestPdf) Supports(name string) bool {
 	return p.SupportsFunc(name)
 }
 func (p *TestPdf) Write(f pdf.File) error {
-	return nil
+	return p.WriteFunc(f)
 }
 
 type TestWalker struct {
@@ -39,6 +40,85 @@ func TestGenerator_New(t *testing.T) {
 
 	if g.Pwd != pwd {
 		t.Errorf("Expected pwd %s, got %s", pwd, g.Pwd)
+	}
+}
+
+type FormatPathTest struct {
+	src      string
+	dst      string
+	pwd      string
+	expected string
+}
+
+var formatPathTests = []FormatPathTest{
+	{
+		src:      "album",
+		dst:      "",
+		pwd:      "/User/user/images",
+		expected: "/User/user/images/album.pdf",
+	},
+	{
+		src:      "album",
+		dst:      "my_album",
+		pwd:      "/User/user/images",
+		expected: "/User/user/images/my_album.pdf",
+	},
+	{
+		src:      "album",
+		dst:      "my_album.pdf",
+		pwd:      "/User/user/images",
+		expected: "/User/user/images/my_album.pdf",
+	},
+	{
+		src:      "/User/user/images/album",
+		dst:      "",
+		pwd:      "/User/user/images",
+		expected: "/User/user/images/album.pdf",
+	},
+	{
+		src:      "/User/user/images/album",
+		dst:      "my_album",
+		pwd:      "/User/user/images",
+		expected: "/User/user/images/my_album.pdf",
+	},
+	{
+		src:      "/User/user/images/album",
+		dst:      "my_album.pdf",
+		pwd:      "/User/user/images",
+		expected: "/User/user/images/my_album.pdf",
+	},
+	{
+		src:      "/User/user/images/album",
+		dst:      "/User/user/documents/my_album.pdf",
+		pwd:      "/User/user/images",
+		expected: "/User/user/documents/my_album.pdf",
+	},
+	{
+		src:      "/User/user/images/this is an album",
+		dst:      "",
+		pwd:      "/User/user/images",
+		expected: "/User/user/images/this is an album.pdf",
+	},
+	{
+		src:      "album",
+		dst:      "../documents/comics/../pdf/album",
+		pwd:      "/User/user/images",
+		expected: "/User/user/documents/pdf/album.pdf",
+	},
+}
+
+func TestGenerator_FormatPath(t *testing.T) {
+	for _, tt := range formatPathTests {
+		src := tt.src
+		dst := tt.dst
+		pwd := tt.pwd
+		expected := tt.expected
+
+		formattedPath := FormatPath(src, dst, pwd)
+
+		if formattedPath != expected {
+			t.Errorf("Expected path '%s', got '%s'", expected, formattedPath)
+		}
 	}
 }
 
@@ -103,82 +183,51 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 }
 
-type DestPathTest struct {
-	src      string
-	dest     string
-	pwd      string
-	expected string
+type TestFile struct {
+	NameFunc  func() string
+	WriteFunc func([]byte) (int, error)
 }
 
-var destPathTests = []DestPathTest{
-	{
-		src:      "album",
-		dest:     "",
-		pwd:      "/User/user/images",
-		expected: "/User/user/images/album.pdf",
-	},
-	{
-		src:      "album",
-		dest:     "my_album",
-		pwd:      "/User/user/images",
-		expected: "/User/user/images/my_album.pdf",
-	},
-	{
-		src:      "album",
-		dest:     "my_album.pdf",
-		pwd:      "/User/user/images",
-		expected: "/User/user/images/my_album.pdf",
-	},
-	{
-		src:      "/User/user/images/album",
-		dest:     "",
-		pwd:      "/User/user/images",
-		expected: "/User/user/images/album.pdf",
-	},
-	{
-		src:      "/User/user/images/album",
-		dest:     "my_album",
-		pwd:      "/User/user/images",
-		expected: "/User/user/images/my_album.pdf",
-	},
-	{
-		src:      "/User/user/images/album",
-		dest:     "my_album.pdf",
-		pwd:      "/User/user/images",
-		expected: "/User/user/images/my_album.pdf",
-	},
-	{
-		src:      "/User/user/images/album",
-		dest:     "/User/user/documents/my_album.pdf",
-		pwd:      "/User/user/images",
-		expected: "/User/user/documents/my_album.pdf",
-	},
-	{
-		src:      "/User/user/images/this is an album",
-		dest:     "",
-		pwd:      "/User/user/images",
-		expected: "/User/user/images/this is an album.pdf",
-	},
-	{
-		src:      "album",
-		dest:     "../documents/comics/../pdf/album",
-		pwd:      "/User/user/images",
-		expected: "/User/user/documents/pdf/album.pdf",
-	},
+func (f *TestFile) Name() string {
+	return f.NameFunc()
 }
 
-func TestGenerator_destPath(t *testing.T) {
-	for _, tt := range destPathTests {
-		src := tt.src
-		dest := tt.dest
-		pwd := tt.pwd
-		expected := tt.expected
+func (f *TestFile) Write(b []byte) (int, error) {
+	return f.WriteFunc(p)
+}
 
-		destPath := destPath(src, dest, pwd)
+func TestGenerator_Write(t *testing.T) {
+	p := &TestPdf{}
 
-		if destPath != expected {
-			t.Errorf("Expected path '%s', got '%s'", expected, destPath)
-		}
+	writeFuncNoErr := func(f pdf.File) error {
+		return nil
+	}
+
+	writeFuncErr := func(f pdf.File) error {
+		return errors.New("Error writing PDF")
+	}
+
+	generator := Generator{Pdf: p}
+
+	f := &TestFile{
+		NameFunc: func() string {
+			return "test.pdf"
+		},
+		WriteFunc: func(b []byte) (int, error) {
+			return 0, nil
+		},
+	}
+
+	p.WriteFunc = writeFuncNoErr
+	err := generator.Write(f)
+	if err.Err != nil {
+		t.Errorf("Expected no error return from Write, got %v", err.Err)
+	}
+
+	p.WriteFunc = writeFuncErr
+	err = generator.Write(f)
+	if err.Err == nil {
+		t.Error("Expected error return from Write, error writing PDF")
 	}
 }
 

@@ -28,7 +28,20 @@ func main() {
 		os.Exit(err.ExitCode)
 	}
 
-	err = g.Write(*output)
+	pwd, pwdErr := os.Getwd()
+	if pwdErr != nil {
+		fmt.Println(pwdErr)
+		os.Exit(1)
+	}
+
+	f, osErr := os.Create(generator.FormatPath(*input, *output, pwd))
+	if osErr != nil {
+		fmt.Println(osErr)
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	err = g.Write(f)
 	if err.ExitCode != 0 {
 		fmt.Println(err.Err)
 		os.Exit(err.ExitCode)

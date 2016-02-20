@@ -47,14 +47,7 @@ func (g *Generator) Generate() ProcessError {
 	return newProcessError(nil)
 }
 
-func (g *Generator) Write(dst string) ProcessError {
-	dstPath := destPath(g.src, dst, g.Pwd)
-	f, err := os.Create(dstPath)
-	if err != nil {
-		return newProcessError(err)
-	}
-	defer f.Close()
-
+func (g *Generator) Write(f pdf.File) ProcessError {
 	if err := g.Pdf.Write(f); err != nil {
 		return newProcessError(err)
 	}
@@ -79,20 +72,22 @@ func (g *Generator) walk(path string, filter func(fs.FileInfo) bool) ([]string, 
 	return g.Walker.Walk(path, filter)
 }
 
-func destPath(src string, dest string, pwd string) (p string) {
-	if dest == "" {
-		dest = src
+func FormatPath(src string, dst string, pwd string) string {
+	if dst == "" {
+		dst = src
 	}
 
-	if filepath.IsAbs(dest) {
-		p = filepath.Clean(dest)
+	var p string
+	if filepath.IsAbs(dst) {
+		p = filepath.Clean(dst)
 	} else {
-		p = filepath.Join(pwd, dest)
+		p = filepath.Join(pwd, dst)
 	}
 
 	// Append `.pdf` extension if not already present
 	if strings.ToLower(filepath.Ext(p)) != ".pdf" {
 		p = p + ".pdf"
 	}
-	return
+
+	return p
 }
