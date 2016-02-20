@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/0xazure/pdify/fs"
+	"github.com/0xazure/pdify/pdf"
 )
 
 type TestPdf struct {
 	AddImageFunc func(string) error
 	SupportsFunc func(string) bool
-	WriteFunc    func(string) error
 }
 
 func (p *TestPdf) AddImage(path string) error {
@@ -21,8 +21,8 @@ func (p *TestPdf) AddImage(path string) error {
 func (p *TestPdf) Supports(name string) bool {
 	return p.SupportsFunc(name)
 }
-func (p *TestPdf) Write(dest string) error {
-	return p.WriteFunc(dest)
+func (p *TestPdf) Write(f pdf.File) error {
+	return nil
 }
 
 type TestWalker struct {
@@ -100,41 +100,6 @@ func TestGenerator_Generate(t *testing.T) {
 
 	if err.Err == nil {
 		t.Error("Expected error return from Generate, error walking path")
-	}
-}
-
-func TestGenerator_Write(t *testing.T) {
-	p := &TestPdf{}
-
-	var dest string
-	writeFuncNoErr := func(d string) error {
-		dest = d
-		return nil
-	}
-
-	writeFuncErr := func(d string) error {
-		return errors.New("Unable to write file")
-	}
-
-	pwd, pwdErr := os.Getwd()
-	if pwdErr != nil {
-		panic(pwdErr)
-	}
-
-	generator := Generator{Pwd: pwd, Pdf: p}
-
-	p.WriteFunc = writeFuncNoErr
-	err := generator.Write("dest")
-
-	if err.Err != nil {
-		t.Errorf("Expected no error, got %v", err.Err)
-	}
-
-	p.WriteFunc = writeFuncErr
-	err = generator.Write("dest")
-
-	if err.Err == nil {
-		t.Error("Expected error return from Generate, error writing file")
 	}
 }
 

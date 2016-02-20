@@ -1,20 +1,21 @@
 package pdf
 
 import (
+	"io"
 	"testing"
 
 	"github.com/jung-kurt/gofpdf"
 )
 
 type TestPdf struct {
-	AddPageFormatFunc      func(string, gofpdf.SizeType)
-	CloseFunc              func()
-	ErrFunc                func() bool
-	ErrorFunc              func() error
-	ImageFunc              func(string, float64, float64, float64, float64, bool, string, int, string)
-	OutputFileAndCloseFunc func(string) error
-	RegisterImageFunc      func(string, string) *gofpdf.ImageInfoType
-	SetMarginsFunc         func(float64, float64, float64)
+	AddPageFormatFunc func(string, gofpdf.SizeType)
+	CloseFunc         func()
+	ErrFunc           func() bool
+	ErrorFunc         func() error
+	ImageFunc         func(string, float64, float64, float64, float64, bool, string, int, string)
+	OutputFunc        func(io.Writer) error
+	RegisterImageFunc func(string, string) *gofpdf.ImageInfoType
+	SetMarginsFunc    func(float64, float64, float64)
 }
 
 func (p *TestPdf) AddPageFormat(orientation string, size gofpdf.SizeType) {
@@ -37,8 +38,8 @@ func (p *TestPdf) Image(name string, x, y, w, h float64, flow bool, format strin
 	p.ImageFunc(name, x, y, w, h, flow, format, link, linkURL)
 }
 
-func (p *TestPdf) OutputFileAndClose(path string) error {
-	return p.OutputFileAndCloseFunc(path)
+func (p *TestPdf) Output(w io.Writer) error {
+	return p.OutputFunc(w)
 }
 
 func (p *TestPdf) RegisterImage(path string, format string) *gofpdf.ImageInfoType {
@@ -88,22 +89,47 @@ func TestPdf_Supports(t *testing.T) {
 	}
 }
 
+type MockFile struct {
+	NameFunc  func() string
+	WriteFunc func([]byte) (int, error)
+}
+
+func (f *MockFile) Name() string {
+	return f.NameFunc()
+}
+
+func (f *MockFile) Write(p []byte) (int, error) {
+	return f.WriteFunc(p)
+}
+
 func TestPdf_Write(t *testing.T) {
 	d := &TestPdf{}
 
-	d.OutputFileAndCloseFunc = func(p string) error {
+	d.OutputFunc = func(w io.Writer) error {
 		return nil
 	}
 
 	d.SetMarginsFunc = func(l, t, r float64) {}
 
+	f := &MockFile{}
+
+	f.NameFunc = func() string {
+		return "test.pdf"
+	}
+
+	var n int
+	f.WriteFunc = func(p []byte) (int, error) {
+		n = n + len(p)
+		return n, nil
+	}
+
 	p := &Pdf{
 		doc: d,
 	}
 
-	var expectedErr error
-	actualErr := p.Write("testdata")
-	if expectedErr != actualErr {
-		t.Errorf("Expected error %v, got %v", expectedErr, actualErr)
+	var expected error
+	actual := p.Write(f)
+	if actual != expected {
+		t.Errorf("Expected error %v, got %v", expected, actual)
 	}
 }

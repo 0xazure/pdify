@@ -10,13 +10,12 @@ import (
 )
 
 type Generator struct {
-	src  string
-	dest string
-	Pwd  string
-	Pdf  interface {
+	src string
+	Pwd string
+	Pdf interface {
 		AddImage(string) error
 		Supports(string) bool
-		Write(string) error
+		Write(pdf.File) error
 	}
 	Walker interface {
 		Walk(string, func(fs.FileInfo) bool) ([]string, error)
@@ -48,10 +47,15 @@ func (g *Generator) Generate() ProcessError {
 	return newProcessError(nil)
 }
 
-func (g *Generator) Write(dest string) ProcessError {
-	g.dest = destPath(g.src, dest, g.Pwd)
+func (g *Generator) Write(dst string) ProcessError {
+	dstPath := destPath(g.src, dst, g.Pwd)
+	f, err := os.Create(dstPath)
+	if err != nil {
+		return newProcessError(err)
+	}
+	defer f.Close()
 
-	if err := g.write(); err != nil {
+	if err := g.Pdf.Write(f); err != nil {
 		return newProcessError(err)
 	}
 
@@ -69,10 +73,6 @@ func (g *Generator) extFilterFunc() func(fs.FileInfo) bool {
 		}
 		return false
 	}
-}
-
-func (g *Generator) write() error {
-	return g.Pdf.Write(g.dest)
 }
 
 func (g *Generator) walk(path string, filter func(fs.FileInfo) bool) ([]string, error) {

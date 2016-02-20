@@ -2,6 +2,7 @@ package pdf
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"github.com/jung-kurt/gofpdf"
@@ -22,9 +23,14 @@ type pdfDoc interface {
 	Err() bool
 	Error() error
 	Image(string, float64, float64, float64, float64, bool, string, int, string)
-	OutputFileAndClose(string) error
+	Output(io.Writer) error
 	RegisterImage(string, string) *gofpdf.ImageInfoType
 	SetMargins(float64, float64, float64)
+}
+
+type File interface {
+	Name() string
+	Write([]byte) (int, error)
 }
 
 func New() (p *Pdf) {
@@ -64,7 +70,8 @@ func (p *Pdf) Supports(path string) bool {
 	return contains
 }
 
-func (p *Pdf) Write(dest string) error {
-	fmt.Printf("Writing PDF to %s\n", dest)
-	return p.doc.OutputFileAndClose(dest)
+func (p *Pdf) Write(f File) error {
+	path, _ := filepath.Abs(f.Name())
+	fmt.Printf("Writing PDF to %s\n", path)
+	return p.doc.Output(f)
 }
