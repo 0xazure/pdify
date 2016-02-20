@@ -1,6 +1,4 @@
 package: github.com/0xazure/pdify
 import:
-- package: github.com/alecthomas/kingpin
-  version: 2.1.11
 - package: github.com/jung-kurt/gofpdf
   version: 0d15f36c67d7e7494aa0eb5a1d94cd766835c257
