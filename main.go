@@ -1,35 +1,57 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
-	"github.com/alecthomas/kingpin"
+	flag "github.com/ogier/pflag"
 
 	"github.com/0xazure/pdify/generator"
 )
 
-const VERSION = "0.2.0"
+const (
+	usage = `Usage: pdify [options] directory
 
-var (
-	input  = kingpin.Arg("input", "Source folder.").Required().String()
-	output = kingpin.Flag("output", "Output file name.").Short('o').String()
+Options:`
+	VERSION = "0.2.0"
 )
 
 func main() {
 	logger := log.New(os.Stderr, "pdify: ", 0)
 
-	kingpin.Version(VERSION)
-	kingpin.Parse()
+	var help bool
+	var output string
+	var version bool
+	flag.BoolVarP(&help, "help", "h", false, "display this help and exit")
+	flag.StringVarP(&output, "output", "o", "", "specify output `file` name")
+	flag.BoolVar(&version, "version", false, "display version information and exit")
+	flag.Parse()
+	input := flag.Arg(0)
 
-	g := generator.New(*input)
+	if help == true {
+		fmt.Println(usage)
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
+
+	if version == true {
+		fmt.Printf("pdify %s\n", VERSION)
+		os.Exit(0)
+	}
+
+	if len(input) == 0 {
+		logger.Fatal("missing folder operand")
+	}
+
+	g := generator.New(input)
 
 	err := g.Generate()
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	err = g.Write(*output)
+	err = g.Write(output)
 	if err != nil {
 		logger.Fatal(err)
 	}
