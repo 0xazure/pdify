@@ -9,7 +9,7 @@ import (
 	"github.com/0xazure/pdify/generator"
 )
 
-const VERSION = "0.2.0"
+const Version = "0.2.0"
 
 var (
 	input  = kingpin.Arg("input", "Source folder.").Required().String()
