@@ -5,9 +5,59 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/0xazure/pdify/fs"
 	"github.com/0xazure/pdify/pdf"
 )
+
+type FileInfo interface {
+	Name() string
+	IsDir() bool
+}
+
+type FileSystem struct {
+	WalkFn func(string, filepath.WalkFunc) error
+}
+
+// Wanted to get rid of the `fs` package, but now we have a different fs namespace
+func NewFileSystem() *FileSystem {
+	walkFn := func(root string, walkFn filepath.WalkFunc) error {
+		return filepath.Walk(root, walkFn)
+	}
+	return &FileSystem{
+		WalkFn: walkFn,
+	}
+}
+func (fs *FileSystem) Walk(root string, walkFn filepath.WalkFunc) error {
+	return fs.WalkFn(root, walkFn)
+}
+
+type Walker struct {
+	Fs FileSystem
+}
+
+func newWalker() *Walker {
+	return &Walker{
+		Fs: FileSystem{},
+	}
+}
+
+// Move this into g.Walk() and eliminate Walker type entierly?
+func (w *Walker) Walk(path string, filter func(FileInfo) bool) ([]string, error) {
+	var files []string
+
+	walkFn := func(path string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if filter(fi) {
+			files = append(files, path)
+		}
+		return nil
+	}
+
+	err := w.Fs.Walk(path, walkFn)
+	return files, err
+}
 
 type Generator struct {
 	src  string
@@ -19,7 +69,7 @@ type Generator struct {
 		Write(string) error
 	}
 	Walker interface {
-		Walk(string, func(fs.FileInfo) bool) ([]string, error)
+		Walk(string, func(FileInfo) bool) ([]string, error)
 	}
 }
 
@@ -31,7 +81,7 @@ func New(src string) *Generator {
 		src:    src,
 		Pwd:    pwd,
 		Pdf:    pdf.New(),
-		Walker: new(fs.Walker),
+		Walker: newWalker(),
 	}
 }
 
@@ -62,8 +112,8 @@ func (g *Generator) addImage(path string) error {
 	return g.Pdf.AddImage(path)
 }
 
-func (g *Generator) extFilterFunc() func(fs.FileInfo) bool {
-	return func(fi fs.FileInfo) bool {
+func (g *Generator) extFilterFunc() func(FileInfo) bool {
+	return func(fi FileInfo) bool {
 		if !fi.IsDir() && g.Pdf.Supports(fi.Name()) {
 			return true
 		}
@@ -75,7 +125,7 @@ func (g *Generator) write() error {
 	return g.Pdf.Write(g.dest)
 }
 
-func (g *Generator) walk(path string, filter func(fs.FileInfo) bool) ([]string, error) {
+func (g *Generator) walk(path string, filter func(FileInfo) bool) ([]string, error) {
 	return g.Walker.Walk(path, filter)
 }
 

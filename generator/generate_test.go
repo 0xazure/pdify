@@ -4,8 +4,6 @@ import (
 	"errors"
 	"os"
 	"testing"
-
-	"github.com/0xazure/pdify/fs"
 )
 
 type TestPdf struct {
@@ -26,10 +24,10 @@ func (p *TestPdf) Write(dest string) error {
 }
 
 type TestWalker struct {
-	WalkFunc func(string, func(fs.FileInfo) bool) ([]string, error)
+	WalkFunc func(string, func(FileInfo) bool) ([]string, error)
 }
 
-func (w *TestWalker) Walk(path string, filter func(fs.FileInfo) bool) ([]string, error) {
+func (w *TestWalker) Walk(path string, filter func(FileInfo) bool) ([]string, error) {
 	return w.WalkFunc(path, filter)
 }
 
@@ -64,11 +62,11 @@ func TestGenerator_Generate(t *testing.T) {
 
 	w := &TestWalker{}
 
-	walkFuncNoErr := func(p string, f func(fs.FileInfo) bool) ([]string, error) {
+	walkFuncNoErr := func(p string, f func(FileInfo) bool) ([]string, error) {
 		return files, nil
 	}
 
-	walkFuncErr := func(p string, f func(fs.FileInfo) bool) ([]string, error) {
+	walkFuncErr := func(p string, f func(FileInfo) bool) ([]string, error) {
 		return nil, errors.New("Problem walking path")
 	}
 
