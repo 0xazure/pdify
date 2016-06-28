@@ -19,7 +19,7 @@ var (
 func main() {
 	logger := log.New(os.Stderr, "pdify: ", 0)
 
-	kingpin.Version(VERSION)
+	kingpin.Version(Version)
 	kingpin.Parse()
 
 	g := generator.New(*input)
